@@ -7,7 +7,7 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-//cookie middleware
+// Middleware cookie
 app.use(cookieParser())
 
 app.get('/', (req, res) => {
@@ -20,8 +20,13 @@ app.use('/singup', singUpRoutes)
 const singInRoutes = require('./routes/singInRoutes')
 app.use('/signin', singInRoutes)
 
+// Verificação do token
+const verifyToken = require('./helpers/verifyToken');
+app.use(verifyToken);
+
 const userRouter = require('./routes/userRoutes')
 app.use('/users', userRouter)
+
 
 app.listen(3000, () => {
     console.log('Servidor iniciado na porta 3000');
