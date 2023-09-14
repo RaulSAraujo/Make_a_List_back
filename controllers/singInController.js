@@ -6,7 +6,7 @@ exports.singin = async (req, res, next) => {
     try {
         const { email, password } = req.body
         // Check
-        if (!email || !password) throw new Error('Login invalido.')
+        if (!email || !password) return next(new Error('Login invalido.'))
 
         const user = await prisma.user.findUnique({
             where: {
