@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --inspect index.js",
     "build": "tsup index.js",
-    "start": "nodemon dist/index.js"
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
