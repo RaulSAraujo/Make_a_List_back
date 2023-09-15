@@ -5,7 +5,15 @@ const cookieToken = require('../util/cookieToken')
 exports.find = async (req, res, next) => {
     try {
         const users = await prisma.user.findMany({
-            where: req.query
+            where: req.query,
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                password: true,
+                created_at: true,
+                updated_at: true
+            }
         })
 
         res.status(200).json({
@@ -71,6 +79,12 @@ exports.update = async (req, res, next) => {
             user
         })
     } catch (error) {
+        // Verifica se o erro é devido a um ID inválido
+        if (error.message.includes('Malformed ObjectID')) {
+            return next(new Error('ID de usuário inválido. Verifique se o ID está no formato correto.'))
+        }
+
+        // Outros erros
         throw new Error(error)
     }
 
