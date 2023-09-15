@@ -18,7 +18,7 @@ const singUpRouter = require('./routes/singUpRoutes')
 app.use('/singup', singUpRouter)
 
 const singInRoutes = require('./routes/singInRoutes')
-app.use('/signin', singInRoutes)
+app.use('/singin', singInRoutes)
 
 // Verificação do token
 const verifyToken = require('./helpers/verifyToken');
