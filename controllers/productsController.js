@@ -82,7 +82,7 @@ exports.update = async (req, res, next) => {
 
         if (Object.keys(req.body).length == 0) return next(new Error('Nenhum dado informado.'))
 
-        const validFields = ['name', 'color', 'icon', 'concluded', 'deleted', 'total', 'usersIds'];
+        const validFields = ['name', 'quantity', 'category', 'price', 'place'];
         if (!Object.entries(req.body).some(([key, data]) => data !== undefined && data !== null && data !== '' && validFields.includes(key))) {
             return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, concluded, deleted, total'))
         }
