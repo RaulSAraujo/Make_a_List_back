@@ -11,47 +11,57 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String         @unique
-  password      String
-  groups        Groups[]
-  purchase_list PurchaseList[]
-  createdAt     DateTime       @default(now())
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String         @unique
+  password        String
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  purchaseListIds String[]       @db.ObjectId
+  purchaseList    PurchaseList[] @relation(fields: [purchaseListIds], references: [id])
+  Groups          Groups[]       @relation(fields: [groupsId], references: [id])
+  groupsId        String[]       @db.ObjectId
 }
 
 model Groups {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  createdAt     DateTime       @default(now())
-  purchase_list PurchaseList[]
-  User          User?          @relation(fields: [userId], references: [id])
-  userId        String?        @db.ObjectId
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  color          String
+  icon           String
+  usersIDs       String[]       @db.ObjectId
+  users          User[]         @relation(fields: [usersIDs], references: [id])
+  purchaseListId String[]       @db.ObjectId
+  PurchaseList   PurchaseList[] @relation(fields: [purchaseListId], references: [id])
+  updated_at     DateTime       @updatedAt
+  createdAt      DateTime       @default(now())
 }
 
 model PurchaseList {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  products  Products[]
-  color     String
-  icon      String
-  concluded Boolean
-  Total     Float
-  createdAt DateTime   @default(now())
-  users     User?      @relation(fields: [userId], references: [id])
-  userId    String?    @db.ObjectId
-  Groups    Groups?    @relation(fields: [groupsId], references: [id])
-  groupsId  String?    @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  color       String
+  icon        String
+  concluded   Boolean    @default(false)
+  delete      Boolean    @default(false)
+  total       Float      @default(0.0)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  productsIDs String[]   @db.ObjectId
+  products    Products[] @relation(fields: [productsIDs], references: [id])
+  usersIDs    String[]   @db.ObjectId
+  users       User[]     @relation(fields: [usersIDs], references: [id])
+  Groups      Groups[]   @relation(fields: [groupsId], references: [id])
+  groupsId    String[]   @db.ObjectId
 }
 
 model Products {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   quantity       Int
   category       String
   price          Float
-  place_purchase String
-  createdAt      DateTime      @default(now())
-  PurchaseList   PurchaseList? @relation(fields: [purchaseListId], references: [id])
-  purchaseListId String?       @db.ObjectId
+  place          String
+  createdAt      DateTime       @default(now())
+  PurchaseList   PurchaseList[] @relation(fields: [purchaseListId], references: [id])
+  purchaseListId String[]       @db.ObjectId
 }

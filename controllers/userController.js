@@ -3,7 +3,15 @@ const prisma = require('../prisma/index')
 exports.find = async (req, res, next) => {
     try {
         const users = await prisma.user.findMany({
-            where: req.query
+            where: req.query,
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                password: true,
+                created_at: true,
+                updated_at: true
+            }
         })
 
         res.status(200).json({

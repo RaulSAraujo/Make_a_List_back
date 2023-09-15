@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const { find, create, update, destroy } = require('../controllers/userController')
+const { find, create, update, destroy } = require('../controllers/groupsController')
 
 router.route('/').get(find)
 router.route('/').post(create)
