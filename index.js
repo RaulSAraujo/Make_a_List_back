@@ -7,7 +7,7 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-//cookie middleware
+// Middleware cookie
 app.use(cookieParser())
 
 app.get('/', (req, res) => {
