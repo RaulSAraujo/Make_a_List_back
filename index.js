@@ -14,8 +14,8 @@ app.get('/', (req, res) => {
     res.send('Funciona')
 })
 
-const singUpRoutes = require('./routes/singUpRoutes')
-app.use('/singup', singUpRoutes)
+const singUpRouter = require('./routes/singUpRoutes')
+app.use('/singup', singUpRouter)
 
 const singInRoutes = require('./routes/singInRoutes')
 app.use('/signin', singInRoutes)
@@ -26,6 +26,9 @@ app.use(verifyToken);
 
 const userRouter = require('./routes/userRoutes')
 app.use('/users', userRouter)
+
+const purchaseListRouter = require('./routes/purchaseListRoutes')
+app.use('/purchase-list', purchaseListRouter)
 
 // Middleware de erro
 app.use((err, req, res, next) => {
