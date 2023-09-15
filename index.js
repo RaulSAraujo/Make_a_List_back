@@ -30,6 +30,12 @@ app.use('/users', userRouter)
 const purchaseListRouter = require('./routes/purchaseListRoutes')
 app.use('/purchase-list', purchaseListRouter)
 
+const productsRouter = require('./routes/productsRoutes')
+app.use('/products', productsRouter)
+
+const groupsRouter = require('./routes/groupsRoutes')
+app.use('/groups', groupsRouter)
+
 // Middleware de erro
 app.use((err, req, res, next) => {
     const statusCode = err.status || 500;
