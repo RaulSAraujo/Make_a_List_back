@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
-    "dev": "nodemon --inspect index.js"
+    "dev": "nodemon --inspect index.js",
+    "build": "tsup index.js",
+    "start": "nodemon dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1",
-    "prisma": "^5.2.0"
+    "prisma": "^5.2.0",
+    "tsup": "^7.2.0"
   }
 }
