@@ -3,6 +3,30 @@ var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 
+// helpers/verifyToken.js
+var require_verifyToken = __commonJS({
+  "helpers/verifyToken.js"(exports, module2) {
+    var express2 = require("express");
+    var jwt = require("jsonwebtoken");
+    function verifyToken2(req, res, next) {
+      if (req.url == "/singin" || req.url == "/singup")
+        return next();
+      const token = req.headers["authorization"];
+      if (!token) {
+        return res.status(401).json({ message: "Token n\xE3o fornecido" });
+      }
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(403).json({ message: "Token inv\xE1lido" });
+        }
+        req.user = decoded;
+        next();
+      });
+    }
+    module2.exports = verifyToken2;
+  }
+});
+
 // prisma/index.js
 var require_prisma = __commonJS({
   "prisma/index.js"(exports, module2) {
@@ -31,7 +55,7 @@ var require_cookieToken = __commonJS({
       const token = getJwtToken(user.id);
       const options = {
         expires: new Date(
-          Date.now() + 3 * 24 * 60 * 60 * 1e3
+          Date.now() + 1 * 24 * 60 * 60 * 1e3
         ),
         httpOnly: true
       };
@@ -116,33 +140,10 @@ var require_singInRoutes = __commonJS({
   }
 });
 
-// helpers/verifyToken.js
-var require_verifyToken = __commonJS({
-  "helpers/verifyToken.js"(exports, module2) {
-    var express2 = require("express");
-    var jwt = require("jsonwebtoken");
-    function verifyToken2(req, res, next) {
-      const token = req.headers["authorization"];
-      if (!token) {
-        return res.status(401).json({ message: "Token n\xE3o fornecido" });
-      }
-      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          return res.status(403).json({ message: "Token inv\xE1lido" });
-        }
-        req.user = decoded;
-        next();
-      });
-    }
-    module2.exports = verifyToken2;
-  }
-});
-
 // controllers/userController.js
 var require_userController = __commonJS({
   "controllers/userController.js"(exports) {
     var prisma = require_prisma();
-    var cookieToken = require_cookieToken();
     exports.find = async (req, res, next) => {
       try {
         const users = await prisma.user.findMany({
@@ -504,7 +505,7 @@ var require_productsController = __commonJS({
           return next(new Error("Informe um id"));
         if (Object.keys(req.body).length == 0)
           return next(new Error("Nenhum dado informado."));
-        const validFields = ["name", "color", "icon", "concluded", "deleted", "total", "usersIds"];
+        const validFields = ["name", "quantity", "category", "price", "place"];
         if (!Object.entries(req.body).some(([key, data]) => data !== void 0 && data !== null && data !== "" && validFields.includes(key))) {
           return next(new Error("Pelo menos um dos campos v\xE1lidos deve estar presente no objeto: name, color, icon, concluded, deleted, total"));
         }
@@ -732,20 +733,22 @@ var require_groupsRoutes = __commonJS({
 // index.js
 var cookieParser = require("cookie-parser");
 var express = require("express");
+var cors = require("cors");
 require("dotenv").config();
 var app = express();
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.get("/", (req, res) => {
   res.send("Funciona");
 });
+var verifyToken = require_verifyToken();
+app.use(verifyToken);
 var singUpRouter = require_singUpRoutes();
 app.use("/singup", singUpRouter);
 var singInRoutes = require_singInRoutes();
-app.use("/signin", singInRoutes);
-var verifyToken = require_verifyToken();
-app.use(verifyToken);
+app.use("/singin", singInRoutes);
 var userRouter = require_userRoutes();
 app.use("/users", userRouter);
 var purchaseListRouter = require_purchaseListRoutes();
