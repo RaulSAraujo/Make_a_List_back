@@ -50,18 +50,20 @@ model PurchaseList {
   products    Products[] @relation(fields: [productsIDs], references: [id])
   usersIDs    String[]   @db.ObjectId
   users       User[]     @relation(fields: [usersIDs], references: [id])
-  Groups      Groups[]   @relation(fields: [groupsId], references: [id])
   groupsId    String[]   @db.ObjectId
+  Groups      Groups[]   @relation(fields: [groupsId], references: [id])
 }
 
 model Products {
   id             String         @id @default(auto()) @map("_id") @db.ObjectId
   name           String
-  quantity       Int
+  quantity       Int            @default(1)
   category       String
-  price          Float
+  price          Float          @default(0.0)
   place          String
+  checked        Boolean        @default(false)
   createdAt      DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
   PurchaseList   PurchaseList[] @relation(fields: [purchaseListId], references: [id])
   purchaseListId String[]       @db.ObjectId
 }

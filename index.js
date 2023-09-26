@@ -1,14 +1,16 @@
 const cookieParser = require('cookie-parser')
 const express = require('express')
+const cors = require("cors");
 
 require('dotenv').config()
 const app = express()
 
+app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Middleware cookie
-// app.use(cookieParser())
+app.use(cookieParser())
 
 app.get('/', (req, res) => {
     res.send('Funciona')
