@@ -2,6 +2,8 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 
 function verifyToken(req, res, next) {
+    if(req.url == '/singin' || req.url == '/singup') return next();
+
     const token = req.headers['authorization'];
 
     if (!token) {
