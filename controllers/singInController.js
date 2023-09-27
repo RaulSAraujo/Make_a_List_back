@@ -10,9 +10,12 @@ exports.singin = async (req, res, next) => {
 
         const user = await prisma.user.findUnique({
             where: {
-                email
+                email,
+                password
             }
         })
+
+        if (!user) return next(new Error('Login invalido'))
 
         // send user a token
         cookieToken(user, res)
