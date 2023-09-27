@@ -1,4 +1,5 @@
 const prisma = require('../prisma/index')
+const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
@@ -11,7 +12,61 @@ exports.find = async (req, res, next) => {
                 category: true,
                 price: true,
                 place: true,
-                createdAt: true,
+                created_at: true,
+                purchase_list_id: true
+            },
+        })
+
+        const list = products.reduce((result, product) => {
+            const category = product.category;
+
+            if (!result.find((item) => item.category === category)) {
+                result.push({
+                    category: category,
+                    products: [],
+                });
+            }
+
+            const categoryItem = result.find((item) => item.category === category);
+            categoryItem.products.push({
+                id: product.id,
+                name: product.name,
+                quantity: product.quantity,
+                category: product.category,
+                price: product.price,
+                place: product.place,
+            });
+
+            return result;
+        }, [])
+
+        res.status(200).json({
+            success: true,
+            list
+        })
+    } catch (error) {
+        throw new Error(error)
+    }
+
+}
+
+exports.findProduct = async (req, res, next) => {
+    try {
+        const { id } = req.query
+        // Check
+        if (!id) return next(new Error('Informe um id'));
+
+        const products = await prisma.products.findUnique({
+            where: req.query,
+            select: {
+                id: true,
+                name: true,
+                quantity: true,
+                category: true,
+                price: true,
+                place: true,
+                created_at: true,
+                purchase_list_id: true
             },
         })
 
@@ -20,6 +75,12 @@ exports.find = async (req, res, next) => {
             products
         })
     } catch (error) {
+         // Verifica se o erro é devido a um ID inválido
+         if (error.message.includes('Malformed ObjectID')) {
+            return next(new Error('ID do produto inválido. Verifique se o ID está no formato correto.'))
+        }
+
+        // Outros erros
         throw new Error(error)
     }
 
@@ -27,45 +88,35 @@ exports.find = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
     try {
-        const validFields = ['listId', 'name', 'quantity', 'category', 'price', 'place'];
+        const validFields = ['purchase_list_id', 'name', 'quantity', 'category', 'price', 'place'];
         if (!Object.entries(req.body).every(([key, data]) => data !== undefined && data !== null && data !== '' && validFields.includes(key))) {
-            return next(new Error('Campos obrigatorios devem estar presente no objeto: listId, name, quantity, category, price, place'))
+            return next(new Error('Campos obrigatorios devem estar presente no objeto: purchase_list_id, name, quantity, category, price, place'))
         }
 
-        const { listId } = req.body
-        delete req.body.listId
-        // Crie o produto e encontre a lista de compras em paralelo
-        const [product, list] = await Promise.all([
-            prisma.products.create({
-                data: req.body,
-            }),
-            prisma.purchaseList.findUnique({
-                where: {
-                    id: listId,
-                },
-            }),
-        ]);
+        const { purchase_list_id } = req.body
+        // Verificar se a lista é existente.
+        const list = await prisma.purchaseList.findUnique({
+            where: {
+                id: purchase_list_id,
+            },
+        })
 
         if (list) {
-            // Atualize a lista de compras com o novo produto
-            list.productsIDs.push(product.id)
+            const user = parserToken(req.cookies.token)
 
-            // Atualize a lista de compras no banco de dados
-            const updateList = await prisma.purchaseList.update({
-                where: {
-                    id: listId,
-                },
+            const product = await prisma.products.create({
                 data: {
-                    productsIDs: list.productsIDs
-                }
+                    ...req.body,
+                    created_by_id: user.userId
+                },
             })
 
             res.status(200).json({
                 success: true,
-                updateList
+                product
             })
         } else {
-            return next(new Error('Id da lista invalido.'))
+            return next(new Error('Lista de compras não encontrada.'))
         }
 
     } catch (error) {
