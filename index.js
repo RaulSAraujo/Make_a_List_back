@@ -20,11 +20,11 @@ app.get('/', (req, res) => {
 const verifyToken = require('./helpers/verifyToken');
 app.use(verifyToken);
 
-const singUpRouter = require('./routes/singUpRoutes')
-app.use('/singup', singUpRouter)
+const signUpRouter = require('./routes/signUpRoutes')
+app.use('/signup', signUpRouter)
 
-const singInRoutes = require('./routes/singInRoutes')
-app.use('/singin', singInRoutes)
+const signInRoutes = require('./routes/signInRoutes')
+app.use('/signin', signInRoutes)
 
 const userRouter = require('./routes/userRoutes')
 app.use('/users', userRouter)

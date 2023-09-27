@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const { singup } = require('../controllers/singUpController')
+const { singup } = require('../controllers/signUpController')
 
 router.route('/').post(singup)
 
