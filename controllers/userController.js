@@ -10,7 +10,29 @@ exports.find = async (req, res, next) => {
                 name: true,
                 password: true,
                 created_at: true,
-                updated_at: true
+                updated_at: true,
+                created_purchase_lists: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                        icon: true,
+                        delete: true,
+                        total: true,
+                        created_at: true,
+                        updated_at: true,
+                    }
+                },
+                created_groups: {
+                    select: {
+                        id: true,
+                        name: true,
+                        color: true,
+                        icon: true,
+                        updated_at: true,
+                        created_at: true
+                    }
+                }
             }
         })
 

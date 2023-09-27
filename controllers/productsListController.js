@@ -2,7 +2,7 @@ const prisma = require('../prisma/index')
 
 exports.find = async (req, res, next) => {
     try {
-        const products = await prisma.products.findMany({
+        const products = await prisma.productList.findMany({
             where: req.query,
             select: {
                 id: true,
@@ -88,7 +88,7 @@ exports.update = async (req, res, next) => {
             return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, concluded, deleted, total'))
         }
 
-        const update = await prisma.products.update({
+        const update = await prisma.productList.update({
             where: {
                 id,
             },
@@ -117,7 +117,7 @@ exports.destroy = async (req, res, next) => {
         // Check
         if (!id) return next(new Error('Informe o id do produto'));
 
-        await prisma.products.delete({
+        await prisma.productList.delete({
             where: {
                 id
             }

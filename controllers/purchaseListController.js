@@ -1,71 +1,75 @@
 const prisma = require('../prisma/index')
+const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
-        const purchaseLists = await prisma.purchaseList.findMany({
+        const list = await prisma.purchaseList.findMany({
             where: {
                 delete: false,
-                concluded: false,
                 ...req.query
             },
-            include: {
-                users: {
+            select: {
+                id: true,
+                name: true,
+                color: true,
+                icon: true,
+                total: true,
+                created_at: true,
+                updated_at: true,
+                created_by: {
                     select: {
                         id: true,
                         name: true,
-                        email: true
+                        email: true,
                     }
                 },
-                products: {
+                shared: {
                     select: {
                         id: true,
                         name: true,
-                        quantity: true,
-                        price: true,
-                        place: true,
-                        category: true,
-                        createdAt: true,
+                        email: true,
                     }
-                },
+                }
             }
+
         })
 
-        const list = purchaseLists.map((purchaseList) => {
-            return {
-                id: purchaseList.id,
-                name: purchaseList.name,
-                color: purchaseList.color,
-                icon: purchaseList.icon,
-                concluded: purchaseList.concluded,
-                delete: purchaseList.delete,
-                total: purchaseList.total,
-                productsIDs: purchaseList.productsIDs,
-                usersIDs: purchaseList.usersIDs,
-                users: purchaseList.users,
-                productLists: purchaseList.products.reduce((result, product) => {
-                    const category = product.category;
+        // const list = purchaseLists.map((purchaseList) => {
+        //     return {
+        //         id: purchaseList.id,
+        //         name: purchaseList.name,
+        //         color: purchaseList.color,
+        //         icon: purchaseList.icon,
+        //         concluded: purchaseList.concluded,
+        //         delete: purchaseList.delete,
+        //         total: purchaseList.total,
+        //         productsIDs: purchaseList.productsIDs,
+        //         usersIDs: purchaseList.usersIDs,
+        //         users: purchaseList.users,
+        //         productLists: purchaseList.products.reduce((result, product) => {
+        //             const category = product.category;
 
-                    if (!result.find((item) => item.category === category)) {
-                        result.push({
-                            category: category,
-                            products: [],
-                        });
-                    }
+        //             if (!result.find((item) => item.category === category)) {
+        //                 result.push({
+        //                     category: category,
+        //                     products: [],
+        //                 });
+        //             }
 
-                    const categoryItem = result.find((item) => item.category === category);
-                    categoryItem.products.push({
-                        id: product.id,
-                        name: product.name,
-                        quantity: product.quantity,
-                        category: product.category,
-                        price: product.price,
-                        place: product.place,
-                    });
+        //             const categoryItem = result.find((item) => item.category === category);
+        //             categoryItem.products.push({
+        //                 id: product.id,
+        //                 name: product.name,
+        //                 quantity: product.quantity,
+        //                 category: product.category,
+        //                 price: product.price,
+        //                 place: product.place,
+        //             });
 
-                    return result;
-                }, []),
-            };
-        });
+        //             return result;
+        //         }, []),
+        //     };
+        // });
 
         res.status(200).json({
             success: true,
@@ -84,11 +88,14 @@ exports.create = async (req, res, next) => {
         // Check
         if (!name || !color || !icon) return next(new Error('Por favor informe o nome, cor e icone'));
 
+        const user = parserToken(req.cookies.token)
+
         const list = await prisma.purchaseList.create({
             data: {
                 name,
                 color,
                 icon,
+                created_by_id: user.userId
             },
         })
 
@@ -110,12 +117,12 @@ exports.update = async (req, res, next) => {
 
         if (Object.keys(req.body).length == 0) return next(new Error('Nenhum dado informado.'))
 
-        const validFields = ['name', 'color', 'icon', 'concluded', 'deleted', 'total', 'usersIDs'];
+        const validFields = ['name', 'color', 'icon', 'concluded', 'deleted', 'total', 'shared_ids'];
         if (!Object.entries(req.body).some(([key, data]) => data !== undefined && data !== null && data !== '' && validFields.includes(key))) {
             return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, concluded, deleted, total'))
         }
 
-        if (req.body.usersIDs) {
+        if (req.body.shared_ids) {
             const list = await prisma.purchaseList.findUnique({
                 where: {
                     id,
@@ -123,10 +130,10 @@ exports.update = async (req, res, next) => {
             })
 
             if (list) {
-                const check = list.usersIDs.length > 0 ? list.usersIDs.some((item) => item !== req.body.usersIDs) : true
+                const check = list.shared_ids.length > 0 ? list.shared_ids.some((item) => item !== req.body.shared_ids) : true
                 if (check) {
-                    list.usersIDs.push(req.body.usersIDs)
-                    req.body.usersIDs = list.usersIDs
+                    list.shared_ids.push(req.body.shared_ids)
+                    req.body.shared_ids = list.shared_ids
                 } else {
                     return next(new Error('Usuario ja adicionado.'))
                 }

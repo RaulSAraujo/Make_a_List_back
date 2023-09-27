@@ -1,33 +1,42 @@
 const prisma = require('../prisma/index')
+const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
         const group = await prisma.groups.findMany({
             where: req.query,
-            include: {
-                users: {
+            select: {
+                id: true,
+                name: true,
+                color: true,
+                icon: true,
+                updated_at: true,
+                created_at: true,
+                created_by: {
                     select: {
                         id: true,
-                        email: true,
                         name: true,
-                        password: true,
-                        created_at: true,
-                        updated_at: true
+                        email: true
                     }
                 },
-                PurchaseList: {
+                purchase_list: {
                     where: {
-                        delete: false,
-                        concluded: false,
+                        delete: false
                     },
                     select: {
                         id: true,
                         name: true,
                         color: true,
-                        icon: true,
                         total: true,
                         created_at: true,
                         updated_at: true,
+                    }
+                },
+                user_list: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
                     }
                 }
             }
@@ -50,11 +59,14 @@ exports.create = async (req, res, next) => {
         // Check
         if (!name || !color || !icon) return next(new Error('Por favor informe o nome,cor e icone do grupo'));
 
+        const user = parserToken(req.cookies.token)
+
         const group = await prisma.groups.create({
             data: {
                 name,
                 color,
-                icon
+                icon,
+                created_by_id: user.userId
             },
         })
 
@@ -76,12 +88,12 @@ exports.update = async (req, res, next) => {
 
         if (Object.keys(req.body).length == 0) return next(new Error('Nenhum dado informado.'))
 
-        const validFields = ['name', 'color', 'icon', 'usersIDs', 'purchaseListId'];
+        const validFields = ['name', 'color', 'icon', 'user_ids', 'purchase_list_ids'];
         if (!Object.entries(req.body).some(([key, data]) => data !== undefined && data !== null && data !== '' && validFields.includes(key))) {
-            return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, concluded, deleted, total'))
+            return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, user_ids, purchase_list_ids'))
         }
 
-        if (req.body.usersIDs) {
+        if (req.body.user_ids) {
             const group = await prisma.groups.findUnique({
                 where: {
                     id,
@@ -89,10 +101,10 @@ exports.update = async (req, res, next) => {
             })
 
             if (group) {
-                const check = group.usersIDs.length > 0 ? group.usersIDs.some((item) => item !== req.body.usersIDs) : true
+                const check = group.user_ids.length > 0 ? group.user_ids.some((item) => item !== req.body.user_ids) : true
                 if (check) {
-                    group.usersIDs.push(req.body.usersIDs)
-                    req.body.usersIDs = group.usersIDs
+                    group.user_ids.push(req.body.user_ids)
+                    req.body.user_ids = group.user_ids
                 } else {
                     return next(new Error('Usuario ja adicionado.'))
                 }
@@ -101,7 +113,7 @@ exports.update = async (req, res, next) => {
             }
         }
 
-        if (req.body.purchaseListId) {
+        if (req.body.purchase_list_ids) {
             const group = await prisma.groups.findUnique({
                 where: {
                     id,
@@ -109,10 +121,10 @@ exports.update = async (req, res, next) => {
             })
 
             if (group) {
-                const check = group.purchaseListId.length > 0 ? group.purchaseListId.some((item) => item !== req.body.purchaseListId) : true
+                const check = group.purchase_list_ids.length > 0 ? group.purchase_list_ids.some((item) => item !== req.body.purchase_list_ids) : true
                 if (check) {
-                    group.purchaseListId.push(req.body.purchaseListId)
-                    req.body.purchaseListId = group.purchaseListId
+                    group.purchase_list_ids.push(req.body.purchase_list_ids)
+                    req.body.purchase_list_ids = group.purchase_list_ids
                 } else {
                     return next(new Error('Lista de compra ja adicionada.'))
                 }
