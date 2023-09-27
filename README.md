@@ -37,7 +37,7 @@ Certifique-se de ter as seguintes ferramentas instaladas em sua máquina antes d
 4. Crie um arquivo `.env` na raiz do projeto para configurar as variáveis de ambiente necessárias. Aqui está um exemplo básico:
 
    ```
-   DATABASE_URL="mongodb+srv://admin:admin@cluster0.7djwpip.mongodb.net/myFirstDatabase"
+   DATABASE_URL="mongodb+srv://admin:admin@cluster0.7djwpip.mongodb.net/Make_A_List"
    JWT_SECRET=makeList
    ```
 
