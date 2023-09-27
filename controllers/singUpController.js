@@ -1,20 +1,26 @@
 const prisma = require('../prisma/index')
 const cookieToken = require('../util/cookieToken')
+const hashPassword = require('../helpers/hashPassword')
 
 exports.singup = async (req, res, next) => {
     try {
-        const { name, email, password } = req.body
+        const { name, email, password, confirm_password } = req.body
         // Check
-        if (!name || !email || !password)  return next(new Error('Por favor preencha todos os campos.'))
+        if (!name || !email || !password, !confirm_password) return next(new Error('Por favor preencha todos os campos.'))
+
+        if (password !== confirm_password) return next(new Error('Ops! Parece que você digitou a senha de confirmação incorretamente. Por favor, verifique e tente novamente.'))
+
+        // Criptografe a senha antes de salvar no banco de dados
+        const hashedPassword = await hashPassword(password);
 
         const user = await prisma.user.create({
             data: {
                 name,
                 email,
-                password
+                password: hashedPassword
             }
         })
-        
+
         // send user a token
         cookieToken(user, res)
     } catch (error) {
