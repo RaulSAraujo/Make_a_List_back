@@ -23,6 +23,7 @@ model User {
   groups_ids             String[]       @db.ObjectId
   groups_list            Groups[]       @relation(fields: [groups_ids], references: [id])
   created_groups         Groups[]       @relation("createdGroup")
+  created_products       Products[]     @relation("createdProducts")
 }
 
 model Groups {
@@ -41,39 +42,35 @@ model Groups {
 }
 
 model PurchaseList {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   color         String
   icon          String
-  delete        Boolean  @default(false)
-  total         Float    @default(0.0)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  shared_ids    String[] @db.ObjectId
-  shared        User[]   @relation(fields: [shared_ids], references: [id])
-  created_by_id String   @db.ObjectId
-  created_by    User     @relation("createdBy", fields: [created_by_id], references: [id])
-  groupsId      String[] @db.ObjectId
-  Groups        Groups[] @relation(fields: [groupsId], references: [id])
-}
-
-model ProductList {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  Products   Products[]
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
+  delete        Boolean    @default(false)
+  total         Float      @default(0.0)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  shared_ids    String[]   @db.ObjectId
+  shared        User[]     @relation(fields: [shared_ids], references: [id])
+  created_by_id String     @db.ObjectId
+  created_by    User       @relation("createdBy", fields: [created_by_id], references: [id])
+  groupsId      String[]   @db.ObjectId
+  Groups        Groups[]   @relation(fields: [groupsId], references: [id])
+  Products      Products[]
 }
 
 model Products {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  quantity      Int         @default(1)
-  category      String
-  price         Float       @default(0.0)
-  place         String
-  checked       Boolean     @default(false)
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  ProductList   ProductList @relation(fields: [productListId], references: [id])
-  productListId String      @db.ObjectId
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  quantity         Int          @default(1)
+  category         String
+  price            Float        @default(0.0)
+  place            String
+  checked          Boolean      @default(false)
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+  purchase_list_id String       @db.ObjectId
+  Purchase_list    PurchaseList @relation(fields: [purchase_list_id], references: [id])
+  created_by_id    String       @db.ObjectId
+  created_by       User         @relation("createdProducts", fields: [created_by_id], references: [id])
 }

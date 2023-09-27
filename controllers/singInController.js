@@ -16,6 +16,9 @@ exports.singin = async (req, res, next) => {
 
         if (!user) return next(new Error('E-mail invalido.'))
 
+        delete user.purchase_list_ids
+        delete user.groups_ids
+
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) return next(new Error('Senha incorreta.'));

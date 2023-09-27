@@ -32,9 +32,6 @@ app.use('/users', userRouter)
 const purchaseListRouter = require('./routes/purchaseListRoutes')
 app.use('/purchase-list', purchaseListRouter)
 
-const productsListRouter = require('./routes/productsListRoutes')
-app.use('/products-list', productsListRouter)
-
 const productsRouter = require('./routes/productsRoutes')
 app.use('/products', productsRouter)
 

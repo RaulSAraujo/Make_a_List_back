@@ -21,6 +21,9 @@ exports.singup = async (req, res, next) => {
             }
         })
 
+        delete user.purchase_list_ids
+        delete user.groups_ids
+
         // send user a token
         cookieToken(user, res)
     } catch (error) {

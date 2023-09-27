@@ -34,43 +34,6 @@ exports.find = async (req, res, next) => {
 
         })
 
-        // const list = purchaseLists.map((purchaseList) => {
-        //     return {
-        //         id: purchaseList.id,
-        //         name: purchaseList.name,
-        //         color: purchaseList.color,
-        //         icon: purchaseList.icon,
-        //         concluded: purchaseList.concluded,
-        //         delete: purchaseList.delete,
-        //         total: purchaseList.total,
-        //         productsIDs: purchaseList.productsIDs,
-        //         usersIDs: purchaseList.usersIDs,
-        //         users: purchaseList.users,
-        //         productLists: purchaseList.products.reduce((result, product) => {
-        //             const category = product.category;
-
-        //             if (!result.find((item) => item.category === category)) {
-        //                 result.push({
-        //                     category: category,
-        //                     products: [],
-        //                 });
-        //             }
-
-        //             const categoryItem = result.find((item) => item.category === category);
-        //             categoryItem.products.push({
-        //                 id: product.id,
-        //                 name: product.name,
-        //                 quantity: product.quantity,
-        //                 category: product.category,
-        //                 price: product.price,
-        //                 place: product.place,
-        //             });
-
-        //             return result;
-        //         }, []),
-        //     };
-        // });
-
         res.status(200).json({
             success: true,
             list
