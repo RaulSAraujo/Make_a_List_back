@@ -75,6 +75,12 @@ exports.findProduct = async (req, res, next) => {
             products
         })
     } catch (error) {
+         // Verifica se o erro é devido a um ID inválido
+         if (error.message.includes('Malformed ObjectID')) {
+            return next(new Error('ID do produto inválido. Verifique se o ID está no formato correto.'))
+        }
+
+        // Outros erros
         throw new Error(error)
     }
 
