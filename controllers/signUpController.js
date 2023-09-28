@@ -13,6 +13,16 @@ exports.singup = async (req, res, next) => {
         // Criptografe a senha antes de salvar no banco de dados
         const hashedPassword = await hashPassword(password);
 
+        const existingUser = await prisma.user.findUnique({
+            where: {
+                email,
+            },
+        });
+
+        if (existingUser) {
+            return next(new Error('O e-mail já está em uso. Escolha outro e-mail.'));
+        }
+
         const user = await prisma.user.create({
             data: {
                 name,
