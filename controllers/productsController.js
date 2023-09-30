@@ -12,7 +12,10 @@ exports.find = async (req, res, next) => {
                 category: true,
                 price: true,
                 place: true,
+                checked: true,
+                created_by: true,
                 created_at: true,
+                updated_at: true,
                 purchase_list_id: true
             },
         })
@@ -75,8 +78,8 @@ exports.findProduct = async (req, res, next) => {
             products
         })
     } catch (error) {
-         // Verifica se o erro é devido a um ID inválido
-         if (error.message.includes('Malformed ObjectID')) {
+        // Verifica se o erro é devido a um ID inválido
+        if (error.message.includes('Malformed ObjectID')) {
             return next(new Error('ID do produto inválido. Verifique se o ID está no formato correto.'))
         }
 
@@ -133,9 +136,17 @@ exports.update = async (req, res, next) => {
 
         if (Object.keys(req.body).length == 0) return next(new Error('Nenhum dado informado.'))
 
-        const validFields = ['name', 'quantity', 'category', 'price', 'place'];
+        const validFields = ['name', 'quantity', 'category', 'price', 'place', 'checked'];
         if (!Object.entries(req.body).some(([key, data]) => data !== undefined && data !== null && data !== '' && validFields.includes(key))) {
             return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, concluded, deleted, total'))
+        }
+
+        // Verifica se no body possui o checked e adicona o id do usuario no checked_by_Id
+        if (req.body.checked == true) {
+            const { userId } = parserToken(req.cookies.token)
+            req.body.checked_by_id = userId
+        } else {
+            req.body.checked_by_id = null
         }
 
         const update = await prisma.products.update({
@@ -166,6 +177,16 @@ exports.destroy = async (req, res, next) => {
         const { id } = req.query
         // Check
         if (!id) return next(new Error('Informe o id do produto'));
+
+        // Verificar se o produto é existente
+        const product = await prisma.products.findUnique({
+            where: {
+                id,
+            },
+        })
+
+        const { userId } = parserToken(req.cookies.token)
+        if (userId !== product.created_by_id) return next(new Error('Você não possui permissão para deletar este produto.'))
 
         await prisma.products.delete({
             where: {

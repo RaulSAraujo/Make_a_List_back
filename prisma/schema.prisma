@@ -24,6 +24,7 @@ model User {
   groups_list            Groups[]       @relation(fields: [groups_ids], references: [id])
   created_groups         Groups[]       @relation("createdGroup")
   created_products       Products[]     @relation("createdProducts")
+  checked_products       Products[]     @relation("checkedProducts")
 }
 
 model Groups {
@@ -66,9 +67,11 @@ model Products {
   category         String
   price            Float        @default(0.0)
   place            String
-  checked          Boolean      @default(false)
   created_at       DateTime     @default(now())
   updated_at       DateTime     @updatedAt
+  checked          Boolean      @default(false)
+  checked_by_id    String?      @db.ObjectId
+  checked_by       User         @relation("checkedProducts", fields: [created_by_id], references: [id])
   purchase_list_id String       @db.ObjectId
   Purchase_list    PurchaseList @relation(fields: [purchase_list_id], references: [id])
   created_by_id    String       @db.ObjectId
