@@ -3,9 +3,22 @@ const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
+
+        const { userId } = parserToken(req.cookies.token)
+
         const list = await prisma.purchaseList.findMany({
             where: {
                 delete: false,
+                OR: [
+                    {
+                        created_by_id: userId // Show lists created by the user
+                    },
+                    {
+                        shared_ids: {
+                            has: userId
+                        }
+                    }
+                ],
                 ...req.query
             },
             select: {
@@ -124,7 +137,7 @@ exports.shared = async (req, res, next) => {
 
         const { userId } = parserToken(req.cookies.token)
         if (userId !== list.created_by_id) return next(new Error('Você não possui permissão para compartilhar esta lista.'))
-        
+
         // Verificar se o id do usuario ja esta adicionado na lista
         const check = list.shared_ids.length > 0 ? list.shared_ids.some((item) => item !== req.body.shared_ids) : true
         if (check) {
