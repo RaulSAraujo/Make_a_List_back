@@ -5,7 +5,7 @@ const cors = require("cors");
 require('dotenv').config()
 const app = express()
 
-app.use(cors());
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -19,6 +19,12 @@ app.get('/', (req, res) => {
 // Verificação do token
 const verifyToken = require('./helpers/verifyToken');
 app.use(verifyToken);
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*")
+    app.use(cors());
+    next();
+});
 
 const signUpRouter = require('./routes/signUpRoutes')
 app.use('/signup', signUpRouter)
