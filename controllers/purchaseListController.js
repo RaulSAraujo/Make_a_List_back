@@ -4,21 +4,22 @@ const parserToken = require('../helpers/parserToken')
 exports.find = async (req, res, next) => {
     try {
 
-        // const { userId } = parserToken(req.cookies.token)
+        const { userId } = parserToken(req.cookies.token)
 
         const list = await prisma.purchaseList.findMany({
             where: {
                 delete: false,
-                // OR: [
-                //     {
-                //         created_by_id: userId // Show lists created by the user
-                //     },
-                //     {
-                //         shared_ids: {
-                //             has: userId
-                //         }
-                //     }
-                // ],
+                
+                OR: [
+                    {
+                        created_by_id: userId,
+                    },
+                    {
+                        shared_ids: {
+                            has: userId
+                        }
+                    }
+                ],
                 ...req.query
             },
             select: {
@@ -47,7 +48,7 @@ exports.find = async (req, res, next) => {
 
         })
 
-        res.status(200).cookie('token', token, options).json({
+        res.status(200).json({
             success: true,
             list
         })
