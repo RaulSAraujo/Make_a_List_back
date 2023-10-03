@@ -105,7 +105,7 @@ exports.create = async (req, res, next) => {
         })
 
         if (list) {
-            const user = parserToken(req.cookies.token)
+            const user = parserToken(req.headers.authorization)
 
             const product = await prisma.products.create({
                 data: {
@@ -143,7 +143,7 @@ exports.update = async (req, res, next) => {
 
         // Verifica se no body possui o checked e adicona o id do usuario no checked_by_Id
         if (req.body.checked == true) {
-            const { userId } = parserToken(req.cookies.token)
+            const { userId } = parserToken(req.headers.authorization)
             req.body.checked_by_id = userId
         } else {
             req.body.checked_by_id = null
@@ -185,7 +185,7 @@ exports.destroy = async (req, res, next) => {
             },
         })
 
-        const { userId } = parserToken(req.cookies.token)
+        const { userId } = parserToken(req.headers.authorization)
         if (userId !== product.created_by_id) return next(new Error('Você não possui permissão para deletar este produto.'))
 
         await prisma.products.delete({

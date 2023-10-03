@@ -59,7 +59,7 @@ exports.create = async (req, res, next) => {
         // Check
         if (!name || !color || !icon) return next(new Error('Por favor informe o nome,cor e icone do grupo'));
 
-        const user = parserToken(req.cookies.token)
+        const user = parserToken(req.headers.authorization)
 
         const group = await prisma.groups.create({
             data: {
@@ -130,7 +130,7 @@ exports.addUsers = async (req, res, next) => {
             },
         })
 
-        const { userId } = parserToken(req.cookies.token)
+        const { userId } = parserToken(req.headers.authorization)
         if (userId !== group.created_by_id) return next(new Error('Você não possui permissão para adicionar usuarios ao grupo.'))
 
         // Verificar se o id do usuario ja esta adicionado ao grupo
@@ -182,7 +182,7 @@ exports.addPurchaseList = async (req, res, next) => {
             },
         })
 
-        const { userId } = parserToken(req.cookies.token)
+        const { userId } = parserToken(req.headers.authorization)
         if (userId !== group.created_by_id) return next(new Error('Você não possui permissão para adicionar listas ao grupo.'))
 
         // Verificar se o id da lista ja esta adicionada ao grupo

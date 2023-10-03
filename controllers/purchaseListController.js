@@ -3,7 +3,6 @@ const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
-
         const { userId } = parserToken(req.headers.authorization)
 
         const list = await prisma.purchaseList.findMany({
@@ -63,7 +62,7 @@ exports.create = async (req, res, next) => {
         // Check
         if (!name || !color || !icon) return next(new Error('Por favor informe o nome, cor e icone'));
 
-        const user = parserToken(req.cookies.token)
+        const user = parserToken(req.headers.authorization)
 
         const list = await prisma.purchaseList.create({
             data: {
@@ -134,7 +133,7 @@ exports.shared = async (req, res, next) => {
             },
         })
 
-        const { userId } = parserToken(req.cookies.token)
+        const { userId } = parserToken(req.headers.authorization)
         if (userId !== list.created_by_id) return next(new Error('Você não possui permissão para compartilhar esta lista.'))
 
         // Verificar se o id do usuario ja esta adicionado na lista
@@ -175,7 +174,7 @@ exports.destroy = async (req, res, next) => {
         const { id } = req.query
         if (!id) return next(new Error('Informe o id do usuário'));
 
-        const { userId } = parserToken(req.cookies.token)
+        const { userId } = parserToken(req.headers.authorization)
         if (userId !== list.created_by_id) return next(new Error('Você não possui permissão para deletar a lista.'))
 
         await prisma.purchaseList.delete({
