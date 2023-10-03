@@ -14,7 +14,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Middleware cookie
-app.use(cookieParser())
+// app.use(cookieParser())
 
 app.get('/', (req, res) => {
     res.send('Funciona')
