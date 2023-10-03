@@ -14,15 +14,15 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Middleware cookie
-// app.use(cookieParser())
+app.use(cookieParser())
 
 app.get('/', (req, res) => {
     res.send('Funciona')
 })
 
 // Verificação do token
-// const verifyToken = require('./helpers/verifyToken');
-// app.use(verifyToken);
+const verifyToken = require('./helpers/verifyToken');
+app.use(verifyToken);
 
 const signUpRouter = require('./routes/signUpRoutes')
 app.use('/signup', signUpRouter)
