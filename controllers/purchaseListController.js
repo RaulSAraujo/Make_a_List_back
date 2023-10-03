@@ -61,7 +61,7 @@ exports.findListProducts = async (req, res, next) => {
         if (!id) return next(new Error('Informe um id da lista'));
 
         const { userId } = parserToken(req.headers.authorization)
-        const { Products } = await prisma.purchaseList.findUnique({
+        const { name, shared, total, Products } = await prisma.purchaseList.findUnique({
             where: {
                 delete: false,
                 OR: [
@@ -109,7 +109,12 @@ exports.findListProducts = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            list
+            list: {
+                name,
+                shared,
+                total,
+                productsList: {...list}
+            }
         })
     } catch (error) {
         // Verifica se o erro é devido a um ID inválido
