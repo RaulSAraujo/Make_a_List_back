@@ -1,6 +1,5 @@
 const prisma = require('../prisma/index')
 const parserToken = require('../helpers/parserToken')
-const getJwtToken = require('../helpers/getJwtToken')
 
 exports.find = async (req, res, next) => {
     try {
@@ -47,13 +46,6 @@ exports.find = async (req, res, next) => {
             }
 
         })
-
-        const token = getJwtToken(user.id);
-        const options = {
-            expires: new Date(
-                Date.now() + 1 * 24 * 60 * 60 * 1000
-            )
-        }
 
         res.status(200).cookie('token', token, options).json({
             success: true,
