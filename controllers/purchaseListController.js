@@ -1,5 +1,5 @@
 const prisma = require('../prisma/index')
-// const parserToken = require('../helpers/parserToken')
+const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
