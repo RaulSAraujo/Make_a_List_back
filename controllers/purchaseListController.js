@@ -77,6 +77,9 @@ exports.findListProducts = async (req, res, next) => {
                 id: id
             },
             select: {
+                name: true,
+                shared: true,
+                total: true,
                 Products: true
             }
         })
@@ -202,7 +205,7 @@ exports.shared = async (req, res, next) => {
         if (userId !== list.created_by_id) return next(new Error('Você não possui permissão para compartilhar esta lista.'))
 
         // Verificar se o id do usuario ja esta adicionado na lista
-        const check = list.shared_ids.length > 0 ? list.shared_ids.some((item) => item !== req.body.shared_ids) : true
+        const check = list.shared_ids.length > 0 ? !list.shared_ids.some((item) => item !== req.body.shared_ids) : true
         if (check) {
             list.shared_ids.push(req.body.shared_ids)
             req.body.shared_ids = list.shared_ids
