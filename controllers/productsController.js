@@ -3,7 +3,7 @@ const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
-        const products = await prisma.products.findMany({
+        const products = await prisma.products.findUnique({
             where: req.query,
             select: {
                 id: true,
@@ -12,15 +12,54 @@ exports.find = async (req, res, next) => {
                 category: true,
                 price: true,
                 place: true,
-                checked: true,
-                created_by: true,
                 created_at: true,
-                updated_at: true,
                 purchase_list_id: true
             },
         })
 
-        const list = products.reduce((result, product) => {
+        res.status(200).json({
+            success: true,
+            products
+        })
+    } catch (error) {
+        // Verifica se o erro é devido a um ID inválido
+        if (error.message.includes('Malformed ObjectID')) {
+            return next(new Error('ID do produto inválido. Verifique se o ID está no formato correto.'))
+        }
+
+        // Outros erros
+        throw new Error(error)
+    }
+
+}
+
+exports.findListProducts = async (req, res, next) => {
+    try {
+        const { id } = req.query
+        if (!id) return next(new Error('Informe um id da lista'));
+
+        const { userId } = parserToken(req.headers.authorization)
+        const { Products } = await prisma.purchaseList.findUnique({
+            where: {
+                delete: false,
+                OR: [
+                    {
+                        created_by_id: userId,
+                    },
+                    {
+                        shared_ids: {
+                            has: userId
+                        }
+                    }
+                ],
+                id: id
+            },
+            select: {
+                Products: true
+            }
+        })
+
+        const list = Products.reduce((result, product) => {
             const category = product.category;
 
             if (!result.find((item) => item.category === category)) {
@@ -46,36 +85,6 @@ exports.find = async (req, res, next) => {
         res.status(200).json({
             success: true,
             list
-        })
-    } catch (error) {
-        throw new Error(error)
-    }
-
-}
-
-exports.findProduct = async (req, res, next) => {
-    try {
-        const { id } = req.query
-        // Check
-        if (!id) return next(new Error('Informe um id'));
-
-        const products = await prisma.products.findUnique({
-            where: req.query,
-            select: {
-                id: true,
-                name: true,
-                quantity: true,
-                category: true,
-                price: true,
-                place: true,
-                created_at: true,
-                purchase_list_id: true
-            },
-        })
-
-        res.status(200).json({
-            success: true,
-            products
         })
     } catch (error) {
         // Verifica se o erro é devido a um ID inválido
