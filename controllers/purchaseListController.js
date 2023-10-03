@@ -9,7 +9,6 @@ exports.find = async (req, res, next) => {
         const list = await prisma.purchaseList.findMany({
             where: {
                 delete: false,
-                
                 OR: [
                     {
                         created_by_id: userId,
