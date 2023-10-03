@@ -55,6 +55,71 @@ exports.find = async (req, res, next) => {
 
 }
 
+exports.findListProducts = async (req, res, next) => {
+    try {
+        const { id } = req.query
+        if (!id) return next(new Error('Informe um id da lista'));
+
+        const { userId } = parserToken(req.headers.authorization)
+        const { Products } = await prisma.purchaseList.findUnique({
+            where: {
+                delete: false,
+                OR: [
+                    {
+                        created_by_id: userId,
+                    },
+                    {
+                        shared_ids: {
+                            has: userId
+                        }
+                    }
+                ],
+                id: id
+            },
+            select: {
+                Products: true
+            }
+        })
+
+        const list = Products.reduce((result, product) => {
+            const category = product.category;
+
+            if (!result.find((item) => item.category === category)) {
+                result.push({
+                    category: category,
+                    products: [],
+                });
+            }
+
+            const categoryItem = result.find((item) => item.category === category);
+            categoryItem.products.push({
+                id: product.id,
+                name: product.name,
+                quantity: product.quantity,
+                category: product.category,
+                price: product.price,
+                place: product.place,
+            });
+
+            return result;
+        }, [])
+
+        res.status(200).json({
+            success: true,
+            list
+        })
+    } catch (error) {
+        // Verifica se o erro é devido a um ID inválido
+        if (error.message.includes('Malformed ObjectID')) {
+            return next(new Error('ID do produto inválido. Verifique se o ID está no formato correto.'))
+        }
+
+        // Outros erros
+        throw new Error(error)
+    }
+
+}
+
 exports.create = async (req, res, next) => {
     try {
         const { name, color, icon } = req.body
