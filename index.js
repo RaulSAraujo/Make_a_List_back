@@ -21,8 +21,8 @@ app.get('/', (req, res) => {
 })
 
 // Verificação do token
-const verifyToken = require('./helpers/verifyToken');
-app.use(verifyToken);
+// const verifyToken = require('./helpers/verifyToken');
+// app.use(verifyToken);
 
 const signUpRouter = require('./routes/signUpRoutes')
 app.use('/signup', signUpRouter)
