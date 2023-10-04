@@ -113,7 +113,7 @@ exports.findListProducts = async (req, res, next) => {
                 name,
                 shared,
                 total,
-                productsList: {...list}
+                productsList: list
             }
         })
     } catch (error) {
