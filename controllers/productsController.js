@@ -46,6 +46,10 @@ exports.create = async (req, res, next) => {
             where: {
                 id: purchase_list_id,
             },
+            select: {
+                id: true,
+                Products: true
+            }
         })
 
         if (list) {
@@ -56,6 +60,17 @@ exports.create = async (req, res, next) => {
                     ...req.body,
                     created_by_id: user.userId
                 },
+            })
+
+            const total = parseFloat(list.Products.reduce((acc, produto) => acc + produto.price, 0))
+
+            await prisma.purchaseList.update({
+                where: {
+                    id: purchase_list_id,
+                },
+                data: {
+                    total
+                }
             })
 
             res.status(200).json({
