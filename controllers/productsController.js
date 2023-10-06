@@ -40,7 +40,7 @@ exports.create = async (req, res, next) => {
             return next(new Error('Campos obrigatorios devem estar presente no objeto: purchase_list_id, name, quantity, category, price, place'))
         }
 
-        const { purchase_list_id } = req.body
+        const { purchase_list_id, price, quantity } = req.body
         // Verificar se a lista é existente.
         const list = await prisma.purchaseList.findUnique({
             where: {
@@ -62,7 +62,8 @@ exports.create = async (req, res, next) => {
                 },
             })
 
-            const total = parseFloat(list.Products.reduce((acc, produto) => acc + produto.price, 0))
+            const totalList = parseFloat(list.Products.reduce((acc, produto) => acc + produto.price * produto.quantity, 0)).toFixed(2)
+            const total = parseFloat(price * quantity) + parseFloat(totalList)
 
             await prisma.purchaseList.update({
                 where: {
