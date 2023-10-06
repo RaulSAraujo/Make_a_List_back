@@ -3,7 +3,7 @@ const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
-        const products = await prisma.products.findUnique({
+        const products = await prisma.products.findMany({
             where: req.query,
             select: {
                 id: true,
@@ -62,6 +62,7 @@ exports.create = async (req, res, next) => {
                 },
             })
 
+            // Calcular o total de produtos junto com o novo produto
             const totalList = parseFloat(list.Products.reduce((acc, produto) => acc + produto.price * produto.quantity, 0)).toFixed(2)
             const total = parseFloat(price * quantity) + parseFloat(totalList)
 
@@ -101,7 +102,7 @@ exports.update = async (req, res, next) => {
             return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, concluded, deleted, total'))
         }
 
-        // Verifica se no body possui o checked e adicona o id do usuario no checked_by_Id
+        // Verifica se no body possui o checked e adiciona o id do usuario no checked_by_Id
         if (req.body.checked == true) {
             const { userId } = parserToken(req.headers.authorization)
             req.body.checked_by_id = userId
@@ -139,20 +140,47 @@ exports.destroy = async (req, res, next) => {
         if (!id) return next(new Error('Informe o id do produto'));
 
         // Verificar se o produto é existente
-        const product = await prisma.products.findUnique({
+        const { created_by_id, purchase_list_id, price, quantity } = await prisma.products.findUnique({
             where: {
                 id,
             },
         })
 
         const { userId } = parserToken(req.headers.authorization)
-        if (userId !== product.created_by_id) return next(new Error('Você não possui permissão para deletar este produto.'))
+        if (userId !== created_by_id) return next(new Error('Você não possui permissão para deletar este produto.'))
 
-        await prisma.products.delete({
+        const list = await prisma.purchaseList.findUnique({
             where: {
-                id
+                id: purchase_list_id,
+            },
+            select: {
+                id: true,
+                Products: true
             }
         })
+
+        if (list) {
+            await prisma.products.delete({
+                where: {
+                    id
+                }
+            })
+
+            // Calcular o total de produtos
+            const totalList = parseFloat(list.Products.reduce((acc, produto) => acc + produto.price * produto.quantity, 0)).toFixed(2)
+            const total = parseFloat(price * quantity) - parseFloat(totalList)
+
+            await prisma.purchaseList.update({
+                where: {
+                    id: purchase_list_id,
+                },
+                data: {
+                    total
+                }
+            })
+        } else {
+            return next(new Error('Lista de compras não encontrada.'))
+        }
 
         res.status(200).json({
             success: true,
