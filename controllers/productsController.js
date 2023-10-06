@@ -168,7 +168,7 @@ exports.destroy = async (req, res, next) => {
 
             // Calcular o total de produtos
             const totalList = parseFloat(list.Products.reduce((acc, produto) => acc + produto.price * produto.quantity, 0)).toFixed(2)
-            const total = parseFloat(price * quantity) - parseFloat(totalList)
+            const total = parseFloat(totalList) - parseFloat(price * quantity)
 
             await prisma.purchaseList.update({
                 where: {
