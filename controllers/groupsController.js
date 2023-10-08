@@ -27,9 +27,17 @@ exports.find = async (req, res, next) => {
                         id: true,
                         name: true,
                         color: true,
+                        icon: true,
                         total: true,
                         created_at: true,
                         updated_at: true,
+                        shared: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                            }
+                        }
                     }
                 },
                 user_list: {
@@ -147,7 +155,7 @@ exports.addUsers = async (req, res, next) => {
                 id,
             },
             data: {
-                user_ids : req.body.user_ids
+                user_ids: req.body.user_ids
             }
         })
 
