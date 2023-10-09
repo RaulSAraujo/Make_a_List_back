@@ -247,6 +247,13 @@ exports.destroy = async (req, res, next) => {
         const { id } = req.query
         if (!id) return next(new Error('Informe o id do usuário'));
 
+        // Verificar se a lista é existente
+        const list = await prisma.purchaseList.findUnique({
+            where: {
+                id,
+            },
+        })
+
         const { userId } = parserToken(req.headers.authorization)
         if (userId !== list.created_by_id) return next(new Error('Você não possui permissão para deletar a lista.'))
 
