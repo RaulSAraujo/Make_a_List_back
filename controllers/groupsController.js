@@ -286,27 +286,14 @@ exports.destroy = async (req, res, next) => {
         if (!id) return next(new Error('Informe o id do grupo'));
 
         // Verificar se o grupo é existente
-        const [created_by_id] = await prisma.groups.findUnique({
+        const {created_by_id} = await prisma.groups.findUnique({
             where: {
                 id
-            },
-            select: {
-                created_by_id: true,
-                purchase_list_ids: true
             }
         })
 
         const { userId } = parserToken(req.headers.authorization)
         if (userId !== created_by_id) return next(new Error('Você não possui permissão para adicionar listas ao grupo.'))
-
-        await prisma.groups.update({
-            where: {
-                id,
-            },
-            data: {
-                purchase_list_ids: []
-            }
-        })
 
         await prisma.groups.delete({
             where: {
