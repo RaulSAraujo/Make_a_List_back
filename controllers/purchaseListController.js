@@ -252,7 +252,7 @@ exports.shared = async (req, res, next) => {
         if (!id) return next(new Error('Informe um id'));
 
         const { email } = req.body
-        if (!email) return next(new Error('Informe o e-mail do usuario.'))
+        if (!email) return next(new Error('Informe o e-mail do usuário.'))
 
         // Verificar se a lista é existente
         const { id: shared_ids } = await prisma.user.findUnique({
@@ -272,11 +272,11 @@ exports.shared = async (req, res, next) => {
         if (userId !== list.created_by_id) return next(new Error('Você não possui permissão para compartilhar esta lista.'))
 
         // Verificar se o id do usuario ja esta adicionado na lista
-        const check = list.shared_ids.length > 0 ? list.shared_ids.some((item) => item === req.body.shared_ids) : true
+        const check = list.shared_ids.length > 0 ? list.shared_ids.some((item) => item === req.body.shared_ids) : false
         if (!check) {
             list.shared_ids.push(shared_ids)
         } else {
-            return next(new Error('Usuario ja adicionado.'))
+            return next(new Error('Usuário já adicionado.'))
         }
 
         const update = await prisma.purchaseList.update({
@@ -309,7 +309,7 @@ exports.leaveList = async (req, res, next) => {
         if (!id) return next(new Error('Informe um id'));
 
         const { shared_ids } = req.body
-        if (!shared_ids) return next(new Error('Informe o id do usuario.'))
+        if (!shared_ids) return next(new Error('Informe o id do usuário.'))
 
         // Verificar se a lista é existente
         const list = await prisma.purchaseList.findUnique({
@@ -327,7 +327,7 @@ exports.leaveList = async (req, res, next) => {
             list.shared_ids.splice(index, 1)
             req.body.shared_ids = list.shared_ids
         } else {
-            return next(new Error('Usuario invalido.'))
+            return next(new Error('Usuário inválido.'))
         }
 
         const update = await prisma.purchaseList.update({
