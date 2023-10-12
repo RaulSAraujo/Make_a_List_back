@@ -60,7 +60,7 @@ exports.findListProducts = async (req, res, next) => {
         const { id } = req.query
         if (!id) return next(new Error('Informe um id da lista'));
 
-        const { name, shared, total, Products } = await prisma.purchaseList.findUnique({
+        const { name, shared, total, Products, created_by } = await prisma.purchaseList.findUnique({
             where: {
                 id: id
             },
@@ -68,7 +68,14 @@ exports.findListProducts = async (req, res, next) => {
                 name: true,
                 shared: true,
                 total: true,
-                Products: true
+                Products: true,
+                created_by: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    }
+                }
             }
         })
 
@@ -101,7 +108,8 @@ exports.findListProducts = async (req, res, next) => {
                 name,
                 shared,
                 total,
-                productsList: list
+                productsList: list,
+                created_by
             }
         })
     } catch (error) {
@@ -243,8 +251,15 @@ exports.shared = async (req, res, next) => {
         const { id } = req.query
         if (!id) return next(new Error('Informe um id'));
 
-        const { shared_ids } = req.body
-        if (!shared_ids) return next(new Error('Informe o id do usuario.'))
+        const { email } = req.body
+        if (!email) return next(new Error('Informe o e-mail do usuario.'))
+
+        // Verificar se a lista é existente
+        const { id: shared_ids } = await prisma.user.findUnique({
+            where: {
+                email,
+            },
+        })
 
         // Verificar se a lista é existente
         const list = await prisma.purchaseList.findUnique({
@@ -259,10 +274,60 @@ exports.shared = async (req, res, next) => {
         // Verificar se o id do usuario ja esta adicionado na lista
         const check = list.shared_ids.length > 0 ? list.shared_ids.some((item) => item === req.body.shared_ids) : true
         if (!check) {
-            list.shared_ids.push(req.body.shared_ids)
-            req.body.shared_ids = list.shared_ids
+            list.shared_ids.push(shared_ids)
         } else {
             return next(new Error('Usuario ja adicionado.'))
+        }
+
+        const update = await prisma.purchaseList.update({
+            where: {
+                id,
+            },
+            data: {
+                shared_ids: list.shared_ids
+            }
+        })
+
+        res.status(200).json({
+            success: true,
+            update
+        })
+    } catch (error) {
+        // Verifica se o erro é devido a um ID inválido
+        if (error.message.includes('Malformed ObjectID')) {
+            return next(new Error('ID da lista inválido. Verifique se o ID está no formato correto.'))
+        }
+
+        // Outros erros
+        throw new Error(error)
+    }
+}
+
+exports.leaveList = async (req, res, next) => {
+    try {
+        const { id } = req.query
+        if (!id) return next(new Error('Informe um id'));
+
+        const { shared_ids } = req.body
+        if (!shared_ids) return next(new Error('Informe o id do usuario.'))
+
+        // Verificar se a lista é existente
+        const list = await prisma.purchaseList.findUnique({
+            where: {
+                id,
+            },
+        })
+
+        const { userId } = parserToken(req.headers.authorization)
+        if (userId !== list.created_by_id && userId !== shared_ids) return next(new Error('Você não possui permissão para compartilhar esta lista.'))
+
+        // Verificar se o id do usuario ja esta adicionado na lista
+        const index = list.shared_ids.findIndex((item) => item === req.body.shared_ids)
+        if (index !== -1) {
+            list.shared_ids.splice(index, 1)
+            req.body.shared_ids = list.shared_ids
+        } else {
+            return next(new Error('Usuario invalido.'))
         }
 
         const update = await prisma.purchaseList.update({
