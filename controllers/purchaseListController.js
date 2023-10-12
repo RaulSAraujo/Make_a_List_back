@@ -60,20 +60,8 @@ exports.findListProducts = async (req, res, next) => {
         const { id } = req.query
         if (!id) return next(new Error('Informe um id da lista'));
 
-        const { userId } = parserToken(req.headers.authorization)
         const { name, shared, total, Products } = await prisma.purchaseList.findUnique({
             where: {
-                delete: false,
-                OR: [
-                    {
-                        created_by_id: userId,
-                    },
-                    {
-                        shared_ids: {
-                            has: userId
-                        }
-                    }
-                ],
                 id: id
             },
             select: {
@@ -128,6 +116,61 @@ exports.findListProducts = async (req, res, next) => {
 
 }
 
+exports.findDeleted = async (req, res, next) => {
+    try {
+        const { userId } = parserToken(req.headers.authorization)
+
+        const list = await prisma.purchaseList.findMany({
+            where: {
+                delete: true,
+                OR: [
+                    {
+                        created_by_id: userId,
+                    },
+                    {
+                        shared_ids: {
+                            has: userId
+                        }
+                    }
+                ],
+                ...req.query
+            },
+            select: {
+                id: true,
+                name: true,
+                color: true,
+                icon: true,
+                total: true,
+                created_at: true,
+                updated_at: true,
+                created_by: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    }
+                },
+                shared: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    }
+                },
+                delete_at: true
+            }
+        })
+
+        res.status(200).json({
+            success: true,
+            list
+        })
+    } catch (error) {
+        throw new Error(error)
+    }
+
+}
+
 exports.create = async (req, res, next) => {
     try {
         const { name, color, icon } = req.body
@@ -164,9 +207,13 @@ exports.update = async (req, res, next) => {
 
         if (Object.keys(req.body).length == 0) return next(new Error('Nenhum dado informado.'))
 
-        const validFields = ['name', 'color', 'icon', 'deleted', 'total'];
+        const validFields = ['name', 'color', 'icon', 'delete', 'total'];
         if (!Object.entries(req.body).some(([key, data]) => data !== undefined && data !== null && data !== '' && validFields.includes(key))) {
-            return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, deleted, total'))
+            return next(new Error('Pelo menos um dos campos válidos deve estar presente no objeto: name, color, icon, delete, total'))
+        }
+
+        if (req.body.delete) {
+            req.body.delete_at = new Date()
         }
 
         const update = await prisma.purchaseList.update({
@@ -248,14 +295,28 @@ exports.destroy = async (req, res, next) => {
         if (!id) return next(new Error('Informe o id do usuário'));
 
         // Verificar se a lista é existente
-        const list = await prisma.purchaseList.findUnique({
+        const { created_by_id, Products } = await prisma.purchaseList.findUnique({
             where: {
                 id,
             },
+            select: {
+                created_by_id: true,
+                Products: true
+            }
         })
 
         const { userId } = parserToken(req.headers.authorization)
-        if (userId !== list.created_by_id) return next(new Error('Você não possui permissão para deletar a lista.'))
+        if (userId !== created_by_id) return next(new Error('Você não possui permissão para deletar a lista.'))
+
+        if (Products.length > 0) {
+            for (product of Products) {
+                await prisma.products.delete({
+                    where: {
+                        id: product.id
+                    }
+                })
+            }
+        }
 
         await prisma.purchaseList.delete({
             where: {

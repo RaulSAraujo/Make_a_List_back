@@ -227,11 +227,86 @@ exports.addPurchaseList = async (req, res, next) => {
     }
 }
 
+exports.removePurchaseList = async (req, res, next) => {
+    try {
+        const { id } = req.query
+        if (!id) return next(new Error('Informe um id'));
+
+        const { purchase_list_ids } = req.body
+        if (!purchase_list_ids) return next(new Error('Informe o id da lista.'))
+
+        // Verificar se o grupo é existente
+        const group = await prisma.groups.findUnique({
+            where: {
+                id
+            },
+        })
+
+        const { userId } = parserToken(req.headers.authorization)
+        if (userId !== group.created_by_id) return next(new Error('Você não possui permissão para remover a listas do grupo.'))
+
+        // Verificar se o id da lista ja esta adicionada ao grupo
+        const index = group.purchase_list_ids.find((item) => item !== req.body.purchase_list_ids)
+        if (index !== -1) {
+            group.purchase_list_ids.splice(index, 1)
+            req.body.purchase_list_ids = group.purchase_list_ids
+        } else {
+            return next(new Error('Lista ja adicionada.'))
+        }
+
+        const update = await prisma.groups.update({
+            where: {
+                id,
+            },
+            data: {
+                purchase_list_ids: req.body.purchase_list_ids
+            }
+        })
+
+        res.status(200).json({
+            success: true,
+            update
+        })
+
+    } catch (error) {
+        // Verifica se o erro é devido a um ID inválido
+        if (error.message.includes('Malformed ObjectID')) {
+            return next(new Error('ID da lista inválido. Verifique se o ID está no formato correto.'))
+        }
+
+        // Outros erros
+        throw new Error(error)
+    }
+}
+
 exports.destroy = async (req, res, next) => {
     try {
         const { id } = req.query
         // Check
         if (!id) return next(new Error('Informe o id do grupo'));
+
+        // Verificar se o grupo é existente
+        const [created_by_id] = await prisma.groups.findUnique({
+            where: {
+                id
+            },
+            select: {
+                created_by_id: true,
+                purchase_list_ids: true
+            }
+        })
+
+        const { userId } = parserToken(req.headers.authorization)
+        if (userId !== created_by_id) return next(new Error('Você não possui permissão para adicionar listas ao grupo.'))
+
+        await prisma.groups.update({
+            where: {
+                id,
+            },
+            data: {
+                purchase_list_ids: []
+            }
+        })
 
         await prisma.groups.delete({
             where: {

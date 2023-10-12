@@ -20,7 +20,7 @@ exports.singup = async (req, res, next) => {
         });
 
         if (existingUser) {
-            return next(new Error('O e-mail já está em uso. Escolha outro e-mail.'));
+            return next(new Error('O e-mail já está em uso.'));
         }
 
         const user = await prisma.user.create({
