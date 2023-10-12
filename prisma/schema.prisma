@@ -48,6 +48,7 @@ model PurchaseList {
   color         String
   icon          String
   delete        Boolean    @default(false)
+  delete_at     DateTime?
   total         Float      @default(0.0)
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
