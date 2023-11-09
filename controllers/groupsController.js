@@ -3,8 +3,22 @@ const parserToken = require('../helpers/parserToken')
 
 exports.find = async (req, res, next) => {
     try {
+        const { userId } = parserToken(req.headers.authorization)
+
         const group = await prisma.groups.findMany({
-            where: req.query,
+            where: {
+                OR: [
+                    {
+                        created_by_id: userId,
+                    },
+                    {
+                        shared_ids: {
+                            has: userId
+                        }
+                    }
+                ],
+                ...req.query
+            },
             select: {
                 id: true,
                 name: true,
@@ -286,7 +300,7 @@ exports.destroy = async (req, res, next) => {
         if (!id) return next(new Error('Informe o id do grupo'));
 
         // Verificar se o grupo é existente
-        const {created_by_id} = await prisma.groups.findUnique({
+        const { created_by_id } = await prisma.groups.findUnique({
             where: {
                 id
             }
