@@ -261,7 +261,7 @@ exports.shared = async (req, res, next) => {
             },
         })
 
-        // Verificar se a lista é existente
+        // Verificar se o usuario é existente
         const list = await prisma.purchaseList.findUnique({
             where: {
                 id,
